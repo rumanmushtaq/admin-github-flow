@@ -1,23 +1,14 @@
 "use client";
 
-import {
-  Table,
-  Card,
-  Input,
-  Select,
-  Button,
-  Tag,
-  Space,
-  Grid,
-  List,
-  Badge,
-} from "antd";
+import { Table, Input, Select, Button, Tag, Space, Grid, Spin } from "antd";
 import {
   SearchOutlined,
-  ReloadOutlined,
+  SyncOutlined,
   ImportOutlined,
   CheckCircleOutlined,
   StarOutlined,
+  GithubOutlined,
+  CodeOutlined,
 } from "@ant-design/icons";
 import { useRepos } from "@/hooks/useRepos";
 import type { GitHubRepo } from "@/types";
@@ -42,29 +33,43 @@ export default function ReposContent() {
 
   const columns = [
     {
-      title: "Name",
+      title: "Repository",
       dataIndex: "name",
       key: "name",
       render: (name: string, record: GitHubRepo) => (
-        <a href={record.githubUrl} target="_blank" rel="noopener noreferrer">
-          {name}
-        </a>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(99,102,241,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <CodeOutlined style={{ color: "#818cf8", fontSize: 16 }} />
+          </div>
+          <div>
+            <a href={record.githubUrl} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600 }}>
+              {name}
+            </a>
+            {record.description && (
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 1, maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {record.description}
+              </div>
+            )}
+          </div>
+        </div>
       ),
     },
     {
       title: "Language",
       dataIndex: "language",
       key: "language",
-      render: (lang: string) => lang && <Tag>{lang}</Tag>,
+      width: 130,
+      render: (lang: string) => lang && lang !== "Unknown" && <Tag className="tag-language">{lang}</Tag>,
     },
     {
       title: "Stars",
       dataIndex: "stars",
       key: "stars",
+      width: 90,
       sorter: (a: GitHubRepo, b: GitHubRepo) => a.stars - b.stars,
       render: (stars: number) => (
-        <span>
-          <StarOutlined style={{ marginRight: 4 }} />
+        <span className="star-count">
+          <StarOutlined />
           {stars}
         </span>
       ),
@@ -72,28 +77,29 @@ export default function ReposContent() {
     {
       title: "Status",
       key: "status",
+      width: 110,
       render: (_: unknown, record: GitHubRepo) =>
         record.imported ? (
-          <Tag icon={<CheckCircleOutlined />} color="success">
-            Imported
-          </Tag>
+          <Tag icon={<CheckCircleOutlined />} className="tag-imported">Imported</Tag>
         ) : (
-          <Tag color="default">New</Tag>
+          <Tag className="tag-new">New</Tag>
         ),
     },
     {
-      title: "Action",
+      title: "",
       key: "action",
+      width: 120,
       render: (_: unknown, record: GitHubRepo) =>
         record.imported ? (
-          <Tag color="green">Done</Tag>
+          <Tag className="tag-imported" style={{ fontSize: 12 }}>Done</Tag>
         ) : (
           <Button
-            type="primary"
+            className="btn-primary"
             size="small"
             icon={<ImportOutlined />}
             loading={importing.has(record.githubId)}
             onClick={() => importRepo(record)}
+            style={{ height: 32, borderRadius: 8, fontSize: 13 }}
           >
             Import
           </Button>
@@ -102,33 +108,24 @@ export default function ReposContent() {
   ];
 
   return (
-    <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 12,
-          marginBottom: 16,
-        }}
-      >
-        <h2 style={{ margin: 0 }}>GitHub Repos</h2>
-        <Button icon={<ReloadOutlined />} onClick={refresh}>
+    <div>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">GitHub Repos</h1>
+          <p className="page-subtitle">Import repositories and generate AI descriptions</p>
+        </div>
+        <Button className="btn-ghost" icon={<SyncOutlined />} onClick={refresh} style={{ display: "flex", alignItems: "center", gap: 6 }}>
           Sync
         </Button>
       </div>
 
-      <Space
-        wrap
-        style={{ marginBottom: 16, width: "100%" }}
-        direction={isMobile ? "vertical" : "horizontal"}
-      >
+      <div className="dark-input" style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
         <Input
           placeholder="Search repos..."
           prefix={<SearchOutlined />}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ width: isMobile ? "100%" : 240 }}
+          style={{ width: isMobile ? "100%" : 280, height: 40, borderRadius: 10 }}
           allowClear
         />
         <Select
@@ -136,58 +133,53 @@ export default function ReposContent() {
           value={languageFilter}
           onChange={setLanguageFilter}
           allowClear
-          style={{ width: isMobile ? "100%" : 180 }}
+          style={{ width: isMobile ? "100%" : 200 }}
           options={languages.map((l) => ({ label: l, value: l }))}
         />
-      </Space>
+      </div>
 
-      {isMobile ? (
-        <List
-          loading={loading}
-          dataSource={repos}
-          renderItem={(repo) => (
-            <Card
-              size="small"
-              style={{ marginBottom: 12 }}
-              title={
-                <a href={repo.githubUrl} target="_blank" rel="noopener noreferrer">
-                  {repo.name}
-                </a>
-              }
-              extra={
-                repo.imported ? (
-                  <Badge status="success" text="Imported" />
+      {loading ? (
+        <div className="page-loading"><Spin size="large" /></div>
+      ) : isMobile ? (
+        <div>
+          {repos.map((repo) => (
+            <div key={repo.githubId} className="repo-card" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, padding: 16, marginBottom: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                <div>
+                  <a href={repo.githubUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#a5b4fc", fontWeight: 600, fontSize: 15 }}>
+                    {repo.name}
+                  </a>
+                  {repo.description && (
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>
+                      {repo.description.slice(0, 60)}
+                    </div>
+                  )}
+                </div>
+                {repo.imported ? (
+                  <Tag className="tag-imported" icon={<CheckCircleOutlined />}>Imported</Tag>
                 ) : (
-                  <Button
-                    type="primary"
-                    size="small"
-                    icon={<ImportOutlined />}
-                    loading={importing.has(repo.githubId)}
-                    onClick={() => importRepo(repo)}
-                  >
+                  <Button className="btn-primary" size="small" icon={<ImportOutlined />} loading={importing.has(repo.githubId)} onClick={() => importRepo(repo)} style={{ height: 30, borderRadius: 8, fontSize: 12 }}>
                     Import
                   </Button>
-                )
-              }
-            >
-              <Space>
-                {repo.language && <Tag>{repo.language}</Tag>}
-                <span>
-                  <StarOutlined /> {repo.stars}
-                </span>
-              </Space>
-            </Card>
-          )}
-        />
+                )}
+              </div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {repo.language && repo.language !== "Unknown" && <Tag className="tag-language">{repo.language}</Tag>}
+                <span className="star-count"><StarOutlined /> {repo.stars}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
-        <Table
-          columns={columns}
-          dataSource={repos}
-          rowKey="githubId"
-          loading={loading}
-          pagination={{ pageSize: 20 }}
-        />
+        <div className="dark-table glass-card" style={{ padding: 0, overflow: "hidden" }}>
+          <Table
+            columns={columns}
+            dataSource={repos}
+            rowKey="githubId"
+            pagination={{ pageSize: 15 }}
+          />
+        </div>
       )}
-    </>
+    </div>
   );
 }

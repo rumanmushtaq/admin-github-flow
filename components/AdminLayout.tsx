@@ -9,6 +9,7 @@ import {
   ProjectOutlined,
   LogoutOutlined,
   MenuOutlined,
+  RocketOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
 
@@ -39,65 +40,71 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       selectedKeys={[pathname]}
       items={menuItems}
       onClick={({ key }) => handleMenuClick(key)}
-      style={{ borderInlineEnd: "none" }}
     />
   );
 
+  const brandBlock = (
+    <div className="sider-brand">
+      <div className="sider-brand-icon">
+        <RocketOutlined />
+      </div>
+      <span className="sider-brand-text">Portfolio</span>
+    </div>
+  );
+
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout className="admin-layout">
       {!isMobile && (
-        <Sider width={220} theme="light" style={{ borderRight: "1px solid #f0f0f0" }}>
-          <div style={{ padding: "16px 24px", fontWeight: 700, fontSize: 18 }}>
-            Portfolio Admin
-          </div>
+        <Sider width={240} className="admin-sider">
+          {brandBlock}
           {menuContent}
         </Sider>
       )}
       <Layout>
-        <Header
-          style={{
-            background: "#fff",
-            padding: "0 16px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            borderBottom: "1px solid #f0f0f0",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <Header className="admin-header">
+          <div className="mobile-brand">
             {isMobile && (
               <Button
                 type="text"
                 icon={<MenuOutlined />}
                 onClick={() => setDrawerOpen(true)}
+                className="header-hamburger"
               />
             )}
             {isMobile && (
-              <span style={{ fontWeight: 700, fontSize: 16 }}>Portfolio Admin</span>
+              <>
+                <div className="sider-brand-icon" style={{ width: 32, height: 32, borderRadius: 8, fontSize: 14 }}>
+                  <RocketOutlined />
+                </div>
+                <span className="mobile-brand-text">Portfolio</span>
+              </>
             )}
           </div>
           <Button
             type="text"
             icon={<LogoutOutlined />}
             onClick={() => signOut({ callbackUrl: "/admin/login" })}
+            className="header-logout"
           >
             {!isMobile && "Logout"}
           </Button>
         </Header>
-        <Content style={{ padding: isMobile ? 12 : 24, background: "#f5f5f5" }}>
+        <Content className="admin-content">
           {children}
         </Content>
       </Layout>
 
       {isMobile && (
         <Drawer
-          title="Portfolio Admin"
+          title={null}
           placement="left"
           onClose={() => setDrawerOpen(false)}
           open={drawerOpen}
-          width={260}
+          width={280}
           styles={{ body: { padding: 0 } }}
+          rootClassName="dark-drawer"
         >
+          {brandBlock}
           {menuContent}
         </Drawer>
       )}

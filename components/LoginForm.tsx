@@ -3,10 +3,8 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Card, Form, Input, Button, Typography, message } from "antd";
-import { LockOutlined, MailOutlined } from "@ant-design/icons";
-
-const { Title } = Typography;
+import { Form, Input, Button, message } from "antd";
+import { LockOutlined, MailOutlined, RocketOutlined } from "@ant-design/icons";
 
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
@@ -29,33 +27,50 @@ export default function LoginForm() {
   };
 
   return (
-    <Card style={{ width: "100%", maxWidth: 400 }}>
-      <Title level={3} style={{ textAlign: "center", marginBottom: 24 }}>
-        Portfolio Admin
-      </Title>
-      <Form layout="vertical" onFinish={onFinish}>
-        <Form.Item
-          name="email"
-          rules={[{ required: true, message: "Enter your email" }]}
-        >
-          <Input prefix={<MailOutlined />} placeholder="Email" size="large" />
-        </Form.Item>
-        <Form.Item
-          name="password"
-          rules={[{ required: true, message: "Enter your password" }]}
-        >
-          <Input.Password
-            prefix={<LockOutlined />}
-            placeholder="Password"
-            size="large"
-          />
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={loading} block size="large">
-            Sign In
-          </Button>
-        </Form.Item>
-      </Form>
-    </Card>
+    <div className="login-wrapper">
+      <div className="login-card">
+        <div className="login-logo">
+          <RocketOutlined />
+        </div>
+        <h1 className="login-title">Welcome Back</h1>
+        <p className="login-subtitle">Sign in to your portfolio admin</p>
+        <Form layout="vertical" onFinish={onFinish} requiredMark={false}>
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[{ required: true, message: "Enter your email" }]}
+          >
+            <Input
+              prefix={<MailOutlined />}
+              placeholder="admin@example.com"
+              size="large"
+            />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            label="Password"
+            rules={[{ required: true, message: "Enter your password" }]}
+          >
+            <Input.Password
+              prefix={<LockOutlined />}
+              placeholder="Enter password"
+              size="large"
+            />
+          </Form.Item>
+          <Form.Item style={{ marginBottom: 0, marginTop: 8 }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              block
+              size="large"
+              className="login-btn"
+            >
+              Sign In
+            </Button>
+          </Form.Item>
+        </Form>
+      </div>
+    </div>
   );
 }
