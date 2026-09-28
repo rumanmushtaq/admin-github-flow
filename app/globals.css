@@ -383,7 +383,13 @@ body {
 /* Admin Layout */
 .admin-layout {
   min-height: 100vh;
+  height: 100vh;
   background: #0a0a12;
+}
+
+.admin-layout > .ant-layout {
+  overflow-y: auto;
+  height: 100vh;
 }
 
 .admin-sider {
@@ -515,7 +521,7 @@ body {
 .admin-content {
   padding: 28px;
   background: #0a0a12;
-  min-height: calc(100vh - 64px);
+  flex: 1;
 }
 
 @media (max-width: 767px) {
