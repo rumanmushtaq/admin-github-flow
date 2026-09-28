@@ -1,19 +1,91 @@
 "use client";
 
-import { Table, Input, Select, Button, Tag, Space, Grid, Spin } from "antd";
+import { Input, Select, Button, Tag, Grid, Spin } from "antd";
 import {
   SearchOutlined,
   SyncOutlined,
   ImportOutlined,
   CheckCircleOutlined,
   StarOutlined,
-  GithubOutlined,
   CodeOutlined,
 } from "@ant-design/icons";
+import { List } from "react-window";
 import { useRepos } from "@/hooks/useRepos";
 import type { GitHubRepo } from "@/types";
+import type { CSSProperties, ReactElement } from "react";
 
 const { useBreakpoint } = Grid;
+
+const ROW_HEIGHT = 56;
+const HEADER_HEIGHT = 44;
+
+interface RowProps {
+  repos: GitHubRepo[];
+  importing: Set<number>;
+  importRepo: (r: GitHubRepo) => void;
+}
+
+function VirtualRow({ index, style, repos, importing, importRepo }: { index: number; style: CSSProperties } & RowProps): ReactElement | null {
+  const repo = repos[index];
+  if (!repo) return null;
+  return (
+    <div
+      className="virtual-row"
+      style={{
+        ...style,
+        display: "flex",
+        alignItems: "center",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        padding: "0 16px",
+      }}
+    >
+      <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 10 }}>
+        <div className="repo-icon-cell">
+          <CodeOutlined style={{ color: "#818cf8", fontSize: 16 }} />
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <a href={repo.githubUrl} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600, color: "#a5b4fc" }}>
+            {repo.name}
+          </a>
+          {repo.description && (
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 280 }}>
+              {repo.description}
+            </div>
+          )}
+        </div>
+      </div>
+      <div style={{ width: 120, flexShrink: 0, textAlign: "center" }}>
+        {repo.language && repo.language !== "Unknown" && <Tag className="tag-language">{repo.language}</Tag>}
+      </div>
+      <div style={{ width: 80, flexShrink: 0, textAlign: "center" }}>
+        <span className="star-count"><StarOutlined /> {repo.stars}</span>
+      </div>
+      <div style={{ width: 100, flexShrink: 0, textAlign: "center" }}>
+        {repo.imported ? (
+          <Tag icon={<CheckCircleOutlined />} className="tag-imported">Imported</Tag>
+        ) : (
+          <Tag className="tag-new">New</Tag>
+        )}
+      </div>
+      <div style={{ width: 100, flexShrink: 0, textAlign: "right" }}>
+        {repo.imported ? (
+          <Tag className="tag-imported" style={{ fontSize: 12 }}>Done</Tag>
+        ) : (
+          <Button
+            className="btn-primary"
+            size="small"
+            icon={<ImportOutlined />}
+            loading={importing.has(repo.githubId)}
+            onClick={() => importRepo(repo)}
+            style={{ height: 32, borderRadius: 8, fontSize: 13 }}
+          >
+            Import
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function ReposContent() {
   const {
@@ -31,81 +103,7 @@ export default function ReposContent() {
   const screens = useBreakpoint();
   const isMobile = !screens.md;
 
-  const columns = [
-    {
-      title: "Repository",
-      dataIndex: "name",
-      key: "name",
-      render: (name: string, record: GitHubRepo) => (
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(99,102,241,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <CodeOutlined style={{ color: "#818cf8", fontSize: 16 }} />
-          </div>
-          <div>
-            <a href={record.githubUrl} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600 }}>
-              {name}
-            </a>
-            {record.description && (
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 1, maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {record.description}
-              </div>
-            )}
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: "Language",
-      dataIndex: "language",
-      key: "language",
-      width: 130,
-      render: (lang: string) => lang && lang !== "Unknown" && <Tag className="tag-language">{lang}</Tag>,
-    },
-    {
-      title: "Stars",
-      dataIndex: "stars",
-      key: "stars",
-      width: 90,
-      sorter: (a: GitHubRepo, b: GitHubRepo) => a.stars - b.stars,
-      render: (stars: number) => (
-        <span className="star-count">
-          <StarOutlined />
-          {stars}
-        </span>
-      ),
-    },
-    {
-      title: "Status",
-      key: "status",
-      width: 110,
-      render: (_: unknown, record: GitHubRepo) =>
-        record.imported ? (
-          <Tag icon={<CheckCircleOutlined />} className="tag-imported">Imported</Tag>
-        ) : (
-          <Tag className="tag-new">New</Tag>
-        ),
-    },
-    {
-      title: "",
-      key: "action",
-      width: 120,
-      render: (_: unknown, record: GitHubRepo) =>
-        record.imported ? (
-          <Tag className="tag-imported" style={{ fontSize: 12 }}>Done</Tag>
-        ) : (
-          <Button
-            className="btn-primary"
-            size="small"
-            icon={<ImportOutlined />}
-            loading={importing.has(record.githubId)}
-            onClick={() => importRepo(record)}
-            style={{ height: 32, borderRadius: 8, fontSize: 13 }}
-          >
-            Import
-          </Button>
-        ),
-    },
-  ];
+  const listHeight = Math.min(repos.length * ROW_HEIGHT, 600);
 
   return (
     <div>
@@ -171,13 +169,24 @@ export default function ReposContent() {
           ))}
         </div>
       ) : (
-        <div className="dark-table glass-card" style={{ padding: 0, overflow: "hidden" }}>
-          <Table
-            columns={columns}
-            dataSource={repos}
-            rowKey="githubId"
-            pagination={{ pageSize: 15 }}
+        <div className="glass-card virtual-table">
+          <div className="virtual-table-header" style={{ display: "flex", alignItems: "center", height: HEADER_HEIGHT, padding: "0 16px", borderBottom: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)" }}>
+            <div style={{ flex: 1 }}>Repository</div>
+            <div style={{ width: 120, textAlign: "center" }}>Language</div>
+            <div style={{ width: 80, textAlign: "center" }}>Stars</div>
+            <div style={{ width: 100, textAlign: "center" }}>Status</div>
+            <div style={{ width: 100, textAlign: "right" }}></div>
+          </div>
+          <List
+            defaultHeight={listHeight}
+            rowCount={repos.length}
+            rowHeight={ROW_HEIGHT}
+            rowComponent={VirtualRow as any}
+            rowProps={{ repos, importing, importRepo }}
           />
+          <div className="virtual-table-footer" style={{ padding: "10px 16px", borderTop: "1px solid rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "right" }}>
+            {repos.length} repositories
+          </div>
         </div>
       )}
     </div>

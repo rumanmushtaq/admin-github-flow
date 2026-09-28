@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a12;
+  --foreground: #e0e0e0;
 }
 
 @theme inline {
@@ -12,10 +12,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html,
 body {
-  background: var(--background);
+  background: #0a0a12;
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
 }
 
 /* === PREMIUM ADMIN DESIGN SYSTEM === */
@@ -383,18 +385,25 @@ body {
 /* Admin Layout */
 .admin-layout {
   min-height: 100vh;
-  height: 100vh;
   background: #0a0a12;
-}
-
-.admin-layout > .ant-layout {
-  overflow-y: auto;
-  height: 100vh;
 }
 
 .admin-sider {
   background: linear-gradient(180deg, #12121e 0%, #0d0d18 100%) !important;
   border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  height: 100vh !important;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.admin-layout > .ant-layout {
+  margin-left: 240px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .admin-sider .ant-layout-sider-children {
@@ -525,6 +534,9 @@ body {
 }
 
 @media (max-width: 767px) {
+  .admin-layout > .ant-layout {
+    margin-left: 0;
+  }
   .admin-content {
     padding: 16px;
   }
@@ -1244,4 +1256,44 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* Virtual Table */
+.virtual-table {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.virtual-table-header {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.virtual-row {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  transition: background 0.15s ease;
+}
+
+.virtual-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.repo-icon-cell {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.virtual-table-footer {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
 }
